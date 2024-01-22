@@ -18,6 +18,8 @@ func main() {
 	database.Migrate()
 
 	http.HandleFunc("/api/enrich", handler.HandleRequest)
+	http.HandleFunc("/api/delete", handler.HandleDelete)
+	http.HandleFunc("/api/people", handler.HandleGetPeople)
 	fmt.Println("Server is running on :8080...")
 	http.ListenAndServe(":8080", nil)
 }
