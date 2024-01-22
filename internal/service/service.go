@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"myapp/database"
 	"net/http"
+	"strconv"
 )
 
 type Person database.Person
@@ -82,4 +83,44 @@ func EnrichPersonData(person *Person) error {
 	}
 
 	return nil
+}
+
+func DeletePersonByID(id int) error {
+	return database.DeletePersonByID(id)
+}
+
+func DeletePersonByIDFromRequest(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodDelete {
+		idStr := r.URL.Query().Get("id")
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			http.Error(w, "Invalid ID", http.StatusBadRequest)
+			return
+		}
+
+		err = DeletePersonByID(id)
+		if err != nil {
+			http.Error(w, "Error deleting person", http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+	} else {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+	}
+}
+
+func GetPeopleWithLimit(limit int) ([]Person, error) {
+	peopleFromDB, err := database.SelectPeople(limit)
+	if err != nil {
+		fmt.Println("Error selecting people from database:", err)
+		return nil, err
+	}
+
+	var people []Person
+	for _, p := range peopleFromDB {
+		people = append(people, Person(p))
+	}
+
+	return people, nil
 }
