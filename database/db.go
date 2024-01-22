@@ -49,3 +49,41 @@ func InsertPerson(person *Person) error {
 
 	return err
 }
+
+func DeletePersonByID(id int) error {
+	_, err := db.Exec(`
+		DELETE FROM people WHERE id = $1;
+	`, id)
+
+	return err
+}
+
+func SelectPeople(limit int) ([]Person, error) {
+	rows, err := db.Query(`
+		SELECT first_name, last_name, patronymic, gender, age, country FROM people
+		LIMIT $1;
+	`, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	people := make([]Person, 0)
+	for rows.Next() {
+		var person Person
+		err := rows.Scan(
+			&person.FirstName,
+			&person.LastName,
+			&person.Patronymic,
+			&person.Gender,
+			&person.Age,
+			&person.Country,
+		)
+		if err != nil {
+			return nil, err
+		}
+		people = append(people, person)
+	}
+
+	return people, nil
+}
