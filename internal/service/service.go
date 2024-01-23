@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"myapp/database"
 	"net/http"
 	"strconv"
@@ -30,6 +31,7 @@ func enrichAge(person *Person) error {
 	var ageData map[string]interface{}
 	err := getAPIResponse(ageURL, &ageData)
 	if err != nil {
+		log.Println("Error enriching age data:", err)
 		return err
 	}
 
@@ -42,6 +44,7 @@ func enrichGender(person *Person) error {
 	var genderData map[string]interface{}
 	err := getAPIResponse(genderURL, &genderData)
 	if err != nil {
+		log.Println("Error enriching gender data:", err)
 		return err
 	}
 
@@ -54,6 +57,7 @@ func enrichNationality(person *Person) error {
 	var nationalizeData map[string]interface{}
 	err := getAPIResponse(nationalizeURL, &nationalizeData)
 	if err != nil {
+		log.Println("Error enriching nationality data:", err)
 		return err
 	}
 
@@ -94,12 +98,14 @@ func DeletePersonByIDFromRequest(w http.ResponseWriter, r *http.Request) {
 		idStr := r.URL.Query().Get("id")
 		id, err := strconv.Atoi(idStr)
 		if err != nil {
+			log.Println("Invalid ID parameter:", err)
 			http.Error(w, "Invalid ID", http.StatusBadRequest)
 			return
 		}
 
 		err = DeletePersonByID(id)
 		if err != nil {
+			log.Println("Error deleting person:", err)
 			http.Error(w, "Error deleting person", http.StatusInternalServerError)
 			return
 		}
@@ -113,7 +119,7 @@ func DeletePersonByIDFromRequest(w http.ResponseWriter, r *http.Request) {
 func GetPeopleWithLimit(limit int) ([]Person, error) {
 	peopleFromDB, err := database.SelectPeople(limit)
 	if err != nil {
-		fmt.Println("Error selecting people from database:", err)
+		log.Println("Error selecting people from database:", err)
 		return nil, err
 	}
 
@@ -123,4 +129,14 @@ func GetPeopleWithLimit(limit int) ([]Person, error) {
 	}
 
 	return people, nil
+}
+
+func UpdatePerson(id int, updatedPerson *Person) error {
+	err := database.UpdatePerson(id, (*database.Person)(updatedPerson))
+	if err != nil {
+		log.Println("Error updating person:", err)
+		return err
+	}
+
+	return nil
 }
